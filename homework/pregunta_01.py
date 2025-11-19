@@ -71,3 +71,39 @@ def pregunta_01():
 
 
     """
+    import os
+    import pandas as pd
+
+    input_dir = "files/input"
+    output_dir = "files/output"
+
+    # Asegurar que la carpeta de salida existe
+    os.makedirs(output_dir, exist_ok=True)
+
+    for dataset_type in ["train", "test"]:
+        data = {"phrase": [], "target": []}
+        for sentiment in ["negative", "positive", "neutral"]:
+            dir_path = os.path.join(input_dir, dataset_type, sentiment)
+
+            # Si la carpeta de sentimiento no existe, la omitimos
+            if not os.path.isdir(dir_path):
+                continue
+
+            # Listar archivos de forma determinista
+            for filename in sorted(os.listdir(dir_path)):
+                if filename.endswith(".txt"):
+                    file_path = os.path.join(dir_path, filename)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as file:
+                            phrase = file.read().strip()
+                    except Exception:
+                        # Si no se puede leer un archivo, lo saltamos
+                        continue
+
+                    data["phrase"].append(phrase)
+                    data["target"].append(sentiment)
+
+        df = pd.DataFrame(data)
+        output_file = os.path.join(output_dir, f"{dataset_type}_dataset.csv")
+        df.to_csv(output_file, index=False)
+
